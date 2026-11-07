@@ -1,0 +1,10 @@
+{
+  "name": "Remix GPS Map Camera - Auto Geotag Photo Editor",
+  "description": "Automatically detect and stamp GPS location, satellite map preview, coordinates, and timestamp onto photos matching field camera standards.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
