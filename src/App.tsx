@@ -15,9 +15,6 @@ import {
   Sliders,
   Upload,
   Camera,
-  Image as ImageIcon,
-  Sparkles,
-  Layers,
 } from 'lucide-react';
 
 // Removed sample default image - app now starts empty, user adds photos via camera or upload
@@ -187,11 +184,6 @@ export default function App() {
     }
   };
 
-  const handleSelectSample = () => {
-    // No more sample photos - this was removed per user request
-    // User can add photos via camera or by dropping/uploading files
-  };
-
   const handleApplyCrop = (croppedDataUrl: string, newWidth: number, newHeight: number) => {
     if (!activePhoto) return;
     setPhotos((prev) =>
@@ -270,7 +262,6 @@ export default function App() {
       {/* Top Application Header */}
       <Header
         onOpenLiveCamera={() => setIsCameraOpen(true)}
-        onSelectSample={handleSelectSample}
         onOpenMapPicker={() => setIsMapPickerOpen(true)}
         onExportZip={handleExportZip}
         isExportingZip={isExportingZip}

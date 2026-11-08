@@ -1,9 +1,8 @@
 import React from 'react';
-import { Camera, MapPin, Sparkles, Layers, Sliders, Image as ImageIcon, Download } from 'lucide-react';
+import { Camera, MapPin, Download } from 'lucide-react';
 
 interface HeaderProps {
   onOpenLiveCamera: () => void;
-  onSelectSample: () => void;
   onOpenMapPicker: () => void;
   onExportZip?: () => void;
   isExportingZip?: boolean;
@@ -12,7 +11,6 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenLiveCamera,
-  onSelectSample,
   onOpenMapPicker,
   onExportZip,
   isExportingZip,
@@ -51,16 +49,6 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <MapPin className="w-3.5 h-3.5 text-teal-600" />
             <span className="hidden sm:inline">Map</span>
-          </button>
-
-          <button
-            onClick={onSelectSample}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 hover:text-slate-900 bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200 transition-colors hidden lg:flex"
-            title="Load sample photo"
-            aria-label="Load demo photo"
-          >
-            <ImageIcon className="w-3.5 h-3.5 text-teal-600" />
-            <span>Sample</span>
           </button>
 
           <button
