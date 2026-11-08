@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, MapPin, Search, Check, Navigation, Layers } from 'lucide-react';
-import { reverseGeocode, searchLocations, POPULAR_LOCATIONS } from '../utils/geocoding';
+import { reverseGeocode, searchLocations, getCurrentDevicePosition, POPULAR_LOCATIONS } from '../utils/geocoding';
 
 interface MapPickerModalProps {
   isOpen: boolean;
@@ -23,9 +23,32 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+  const [gpsError, setGpsError] = useState<string | null>(null);
   const [currentAddress, setCurrentAddress] = useState<string>('');
 
   if (!isOpen) return null;
+
+  const handleUseMyGps = async () => {
+    setIsLocating(true);
+    setGpsError(null);
+    try {
+      const pos = await getCurrentDevicePosition();
+      setLat(pos.latitude);
+      setLng(pos.longitude);
+      setSearchResults([]);
+      const geo = await reverseGeocode(pos.latitude, pos.longitude);
+      setCurrentAddress(`${geo.title} • ${geo.address}`);
+    } catch (e: any) {
+      setGpsError(
+        e?.code === 1
+          ? 'Location permission denied. Allow it in your browser settings, then try again.'
+          : 'Could not get your GPS position. Try again or enter coordinates manually.'
+      );
+    } finally {
+      setIsLocating(false);
+    }
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,8 +147,18 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
           {/* Quick Presets */}
           <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
             <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold mr-1">
-              Popular:
+              Presets:
             </span>
+            <button
+              type="button"
+              onClick={handleUseMyGps}
+              disabled={isLocating}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-semibold shadow-2xs transition disabled:opacity-50"
+              aria-label="Use my current GPS location"
+            >
+              <Navigation className="w-3 h-3" />
+              <span>{isLocating ? 'Locating…' : 'Use My GPS'}</span>
+            </button>
             {POPULAR_LOCATIONS.map((preset, idx) => (
               <button
                 key={idx}
@@ -136,6 +169,9 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
                 {preset.title.split(',')[0]}
               </button>
             ))}
+            {gpsError && (
+              <p className="w-full mt-1 text-[11px] text-amber-700">{gpsError}</p>
+            )}
           </div>
         </div>
 
