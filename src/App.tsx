@@ -126,7 +126,7 @@ export default function App() {
         // Inherit current active photo location or default
         const fallback = activePhoto?.data || photos[0]?.data;
         initialGeotag = {
-          ...fallback,
+          ...(fallback ?? { title: '', address: '', latitude: 0, longitude: 0 }),
           dateTime: exif.dateTime || formatDateTime(file.lastModified || new Date()),
         };
       }

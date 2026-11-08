@@ -70,7 +70,7 @@ export const BatchGallery: React.FC<BatchGalleryProps> = ({
             {/* Gradient caption overlay */}
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-1 flex items-center justify-between">
               <span className="text-[9px] text-white truncate font-medium max-w-[65px]">
-                {photo.data.title.split(',')[0]}
+                {photo.data.title?.split(',')[0]}
               </span>
               {photo.detectedFromExif && (
                 <span title="GPS auto-detected from EXIF">
