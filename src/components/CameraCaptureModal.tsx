@@ -13,6 +13,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
   onCapture,
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
@@ -28,6 +29,14 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
       stopCamera();
     };
   }, [isOpen, facingMode]);
+
+  // The video element only mounts after isStarting flips false, so attach the
+  // stream here rather than in startCamera where the ref is still null.
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream, isStarting]);
 
   const startCamera = async () => {
     stopCamera();
@@ -46,10 +55,8 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
         },
         audio: false,
       });
+      streamRef.current = mediaStream;
       setStream(mediaStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
     } catch (err: any) {
       console.warn('Camera error:', err);
       setCameraError(
@@ -65,10 +72,11 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
   };
 
   const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
     }
+    setStream(null);
   };
 
   const handleTakePhoto = () => {
