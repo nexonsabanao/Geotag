@@ -20,7 +20,7 @@ import {
   Layers,
 } from 'lucide-react';
 
-import { createConstructionDemoImage, createRoadInspectionDemoImage } from './utils/sampleImages';
+// Removed sample default image - app now starts empty, user adds photos via camera or upload
 
 import { MapPickerModal } from './components/MapPickerModal';
 import { exportAllPhotosZip } from './utils/batchExport';
@@ -48,44 +48,13 @@ const DEFAULT_STAMP_CONFIG: StampConfig = {
   dateFormat: 'MM/DD/YY hh:mm A',
 };
 
-// Initial single demo photo:
-const getInitialPhotos = (): PhotoItem[] => {
-  const cleanBuildingImg = typeof window !== 'undefined' ? createConstructionDemoImage() : '';
-
-  return [
-    {
-      id: 'sample-clean-building',
-      name: 'School_Building_Inspection.jpg',
-      previewUrl: cleanBuildingImg,
-      originalWidth: 1200,
-      originalHeight: 900,
-      data: {
-        title: 'Oton, Iloilo, Philippines',
-        address: 'Iloilo R-1 Road, Poblacion North, Oton, Iloilo 5020, Philippines',
-        latitude: 10.690836,
-        longitude: 122.485223,
-        dateTime: '07/24/25  10:15 AM',
-        altitude: 18.2,
-        accuracy: 4,
-        bearing: 142,
-        compassDirection: 'SE',
-        weather: '31°C  Sunny',
-        projectName: 'DepEd School Building Inspection',
-        inspectorName: 'Engr. N. Sabanao',
-        notes: 'Structural column & beam inspection passed',
-      },
-      detectedFromExif: true,
-      status: 'ready',
-    },
-  ];
-};
+// App starts with zero photos - user adds photos via camera or upload
+const getInitialPhotos = (): PhotoItem[] => [];
+const getInitialActivePhotoId = (): string => '';
 
 export default function App() {
   const [photos, setPhotos] = useState<PhotoItem[]>(() => getInitialPhotos());
-  const [activePhotoId, setActivePhotoId] = useState<string>(() => {
-    const list = getInitialPhotos();
-    return list[0].id;
-  });
+  const [activePhotoId, setActivePhotoId] = useState<string>(() => getInitialActivePhotoId());
   const [config, setConfig] = useState<StampConfig>(DEFAULT_STAMP_CONFIG);
   const [activeTab, setActiveTab] = useState<'location' | 'stamp'>('location');
   const [mobileTab, setMobileTab] = useState<'preview' | 'location' | 'stamp'>('preview');
@@ -98,7 +67,7 @@ export default function App() {
 
   const [renderedPreviewUrl, setRenderedPreviewUrl] = useState<string>('');
 
-  const activePhoto = photos.find((p) => p.id === activePhotoId) || photos[0] || null;
+  const activePhoto = photos.find((p) => p.id === activePhotoId) || null;
 
   const handleExportZip = async () => {
     if (photos.length === 0) return;
@@ -219,13 +188,8 @@ export default function App() {
   };
 
   const handleSelectSample = () => {
-    const sample = getInitialPhotos()[0];
-    if (photos.some((p) => p.id === sample.id)) {
-      setActivePhotoId(sample.id);
-    } else {
-      setPhotos((prev) => [sample, ...prev]);
-      setActivePhotoId(sample.id);
-    }
+    // No more sample photos - this was removed per user request
+    // User can add photos via camera or by dropping/uploading files
   };
 
   const handleApplyCrop = (croppedDataUrl: string, newWidth: number, newHeight: number) => {

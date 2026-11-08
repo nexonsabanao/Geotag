@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Camera, X, RefreshCw, Check, AlertCircle } from 'lucide-react';
+import { Camera, X, RefreshCw, AlertCircle, Loader2 } from 'lucide-react';
 
 interface CameraCaptureModalProps {
   isOpen: boolean;
@@ -15,6 +15,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [isStarting, setIsStarting] = useState(false);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
 
   useEffect(() => {
@@ -31,7 +32,12 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
   const startCamera = async () => {
     stopCamera();
     setCameraError(null);
+    setIsStarting(true);
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera API is not supported in this browser.');
+      }
+
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: facingMode,
@@ -46,7 +52,15 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
       }
     } catch (err: any) {
       console.warn('Camera error:', err);
-      setCameraError('Unable to access camera. Please allow camera permissions or upload a file.');
+      setCameraError(
+        err.name === 'NotAllowedError'
+          ? 'Camera access denied. Please allow camera permissions in your browser settings.'
+          : err.name === 'NotFoundError'
+          ? 'No camera was found. Please connect a camera and try again.'
+          : 'Unable to access camera. Please allow camera permissions or upload a file.'
+      );
+    } finally {
+      setIsStarting(false);
     }
   };
 
@@ -60,11 +74,21 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
   const handleTakePhoto = () => {
     if (!videoRef.current) return;
     const video = videoRef.current;
+
+    // Wait for video to be ready before capturing
+    if (video.readyState < 2) {
+      setCameraError('Camera is still starting. Please wait a moment.');
+      return;
+    }
+
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth || 1280;
     canvas.height = video.videoHeight || 720;
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      setCameraError('Failed to initialize canvas for photo capture.');
+      return;
+    }
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     canvas.toBlob(
@@ -113,6 +137,20 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
             <div className="p-6 text-center text-slate-400 flex flex-col items-center gap-2">
               <AlertCircle className="w-8 h-8 text-amber-400" />
               <p className="text-xs">{cameraError}</p>
+              <button
+                onClick={() => {
+                  setCameraError(null);
+                  startCamera();
+                }}
+                className="mt-2 text-xs text-emerald-600 hover:text-emerald-800 underline"
+              >
+                Try again
+              </button>
+            </div>
+          ) : isStarting ? (
+            <div className="p-6 text-center text-slate-400 flex flex-col items-center gap-2">
+              <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
+              <p className="text-xs">Starting camera...</p>
             </div>
           ) : (
             <video
@@ -125,7 +163,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
           )}
 
           {/* Crosshair guide overlay */}
-          {!cameraError && (
+          {!cameraError && !isStarting && (
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
               <div className="w-16 h-16 border border-white/30 rounded-lg flex items-center justify-center">
                 <div className="w-2 h-2 bg-emerald-400 rounded-full animate-ping opacity-60" />
